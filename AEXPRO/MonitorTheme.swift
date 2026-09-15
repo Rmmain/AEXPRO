@@ -17,8 +17,8 @@ enum MonitorTheme {
     static let signal = Color(red: 0.35, green: 0.82, blue: 0.78)
     static let signalSoft = Color(red: 0.45, green: 0.78, blue: 0.92)
 
-    static let gridLine = Color.white.opacity(0.07)
-    static let gridAccent = Color(red: 0.35, green: 0.82, blue: 0.78).opacity(0.18)
+    static let gridLine = Color.white.opacity(0.12)
+    static let gridAccent = Color(red: 0.35, green: 0.82, blue: 0.78).opacity(0.32)
 
     static let chromeFill = Color.white.opacity(0.08)
     static let chromeStroke = Color.white.opacity(0.16)

@@ -153,8 +153,8 @@ private struct PerspectiveGrid: View {
                 line.addLine(to: vanish)
                 context.stroke(
                     line,
-                    with: .color(MonitorTheme.gridLine),
-                    lineWidth: i == cols / 2 ? 1.1 : 0.6
+                    with: .color(i == cols / 2 ? MonitorTheme.gridAccent : Color.white.opacity(0.11)),
+                    lineWidth: i == cols / 2 ? 1.4 : 0.8
                 )
             }
 
