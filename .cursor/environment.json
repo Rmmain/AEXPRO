@@ -1,0 +1,5 @@
+{
+  "name": "AEXPRO (Swift toolchain on Linux)",
+  "user": "ubuntu",
+  "install": "bash ./.cursor/install.sh"
+}
