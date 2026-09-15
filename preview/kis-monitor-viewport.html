@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>KIS AI Monitor — viewport résultat</title>
+  <style>
+    :root {
+      --studio-deep: #12171f;
+      --studio-mid: #212b38;
+      --studio-lift: #2e3b48;
+      --signal: #59d1c7;
+      --signal-soft: #73c7eb;
+      --chrome: rgba(255,255,255,0.92);
+      --muted: rgba(255,255,255,0.58);
+      --stroke: rgba(255,255,255,0.16);
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      height: 100%;
+      font-family: ui-rounded, "SF Pro Text", system-ui, sans-serif;
+      background: #000;
+      color: #fff;
+    }
+    .app {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+    header.appbar {
+      padding: 10px 16px;
+      font-weight: 600;
+      font-size: 17px;
+      background: #000;
+    }
+    .split {
+      display: grid;
+      grid-template-columns: 1fr 400px;
+      flex: 1;
+      min-height: 0;
+    }
+    .viewport {
+      position: relative;
+      overflow: hidden;
+      background:
+        radial-gradient(ellipse 70% 50% at 50% 42%, rgba(115,199,235,0.16), transparent 70%),
+        linear-gradient(180deg, var(--studio-lift) 0%, var(--studio-mid) 42%, var(--studio-deep) 100%);
+    }
+    .viewport::after {
+      content: "";
+      position: absolute;
+      inset: auto 0 0 0;
+      height: 55%;
+      background:
+        linear-gradient(180deg, transparent, rgba(0,0,0,0.45)),
+        repeating-linear-gradient(
+          90deg,
+          transparent 0,
+          transparent 47px,
+          rgba(255,255,255,0.045) 48px
+        );
+      transform: perspective(700px) rotateX(62deg);
+      transform-origin: top;
+      pointer-events: none;
+      border-top: 1px solid rgba(89,209,199,0.22);
+    }
+    .glow {
+      position: absolute;
+      left: 50%;
+      top: 52%;
+      width: 420px;
+      height: 220px;
+      transform: translate(-50%, -50%);
+      background: radial-gradient(circle, rgba(255,255,255,0.12), transparent 70%);
+      filter: blur(8px);
+      pointer-events: none;
+    }
+    .chrome-top, .chrome-bottom {
+      position: absolute;
+      left: 16px;
+      right: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      z-index: 2;
+    }
+    .chrome-top { top: 16px; }
+    .chrome-bottom { bottom: 16px; align-items: flex-end; }
+    .glass {
+      background: rgba(20, 28, 36, 0.55);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--stroke);
+    }
+    .badge {
+      border-radius: 14px;
+      padding: 10px 14px;
+    }
+    .badge .row { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 600; }
+    .dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--signal);
+      box-shadow: 0 0 10px var(--signal);
+    }
+    .badge .count { margin-top: 6px; font-size: 11px; color: var(--muted); }
+    .toolbar {
+      display: flex;
+      gap: 8px;
+      padding: 6px;
+      border-radius: 999px;
+    }
+    .tool {
+      width: 34px; height: 34px; border-radius: 50%;
+      background: rgba(255,255,255,0.08);
+      display: grid; place-items: center;
+      font-size: 13px;
+    }
+    .tool.danger { color: #f07a7a; }
+    .empty {
+      position: absolute;
+      left: 50%;
+      top: 46%;
+      transform: translate(-50%, -50%);
+      z-index: 2;
+      text-align: center;
+      padding: 26px 28px;
+      border-radius: 22px;
+      box-shadow: 0 8px 28px rgba(89,209,199,0.12);
+      max-width: 360px;
+    }
+    .icon-wrap {
+      width: 92px; height: 92px; margin: 0 auto 14px;
+      border-radius: 50%;
+      display: grid; place-items: center;
+      background: rgba(89,209,199,0.12);
+      border: 1px solid rgba(89,209,199,0.35);
+      color: var(--signal);
+      font-size: 34px;
+    }
+    .empty h1 { margin: 0 0 8px; font-size: 17px; }
+    .empty p { margin: 0; font-size: 13px; color: var(--muted); line-height: 1.45; }
+    .gizmo, .hint {
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .gizmo { display: flex; gap: 10px; }
+    .x { color: #f26161; } .y { color: #6bdb85; } .z { color: #619eea; }
+    .hint { color: var(--muted); font-weight: 500; }
+    .side {
+      background: #0d0f14;
+      border-left: 1px solid rgba(255,255,255,0.08);
+      padding: 12px 14px;
+    }
+    .side .meta { font-size: 11px; color: rgba(255,255,255,0.55); }
+    .side .name { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; margin-top: 4px; }
+    .orange { width: 7px; height: 7px; border-radius: 50%; background: orange; }
+    .card {
+      margin-top: 16px;
+      background: #122838;
+      border-radius: 16px;
+      padding: 14px;
+    }
+    .card h2 { margin: 0 0 8px; font-size: 14px; }
+    .card p { margin: 0; font-size: 13px; color: rgba(255,255,255,0.78); line-height: 1.45; }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="appbar">KIS AI Monitor</header>
+    <div class="split">
+      <section class="viewport" aria-label="Vue résultat 3D">
+        <div class="glow"></div>
+        <div class="chrome-top">
+          <div class="glass badge">
+            <div class="row"><span class="dot"></span> KIS 3D ENGINE · Base Easy</div>
+            <div class="count">Aucune pièce</div>
+          </div>
+          <div class="glass toolbar">
+            <div class="tool" title="Caméra">◎</div>
+            <div class="tool" title="Vue modèle">◻</div>
+            <div class="tool" title="Grille">▦</div>
+            <div class="tool danger" title="Effacer">⌫</div>
+          </div>
+        </div>
+        <div class="empty glass">
+          <div class="icon-wrap">◇</div>
+          <h1>Résultat de la demande</h1>
+          <p>Le modèle 3D apparaîtra ici dès qu’une pièce sera générée à partir de votre prompt.</p>
+        </div>
+        <div class="chrome-bottom">
+          <div class="glass gizmo"><span class="x">● X</span><span class="y">● Y</span><span class="z">● Z</span></div>
+          <div class="glass hint">Vue résultat · pincer pour zoomer · glisser pour orbiter</div>
+        </div>
+      </section>
+      <aside class="side">
+        <div class="meta">ESIAKIS · Échange enregistré</div>
+        <div class="name"><span class="orange"></span> Esiakis (KIS Native)</div>
+        <div class="card">
+          <h2>ESIAKIS · échange de création</h2>
+          <p>Le panneau de gauche montre le résultat 3D de cette demande. Fond studio, grille et chrome ont été retravaillés pour une lecture plus claire.</p>
+        </div>
+      </aside>
+    </div>
+  </div>
+</body>
+</html>
