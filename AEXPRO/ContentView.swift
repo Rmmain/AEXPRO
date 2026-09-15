@@ -65,7 +65,7 @@ struct ContentView: View {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("ESIAKIS · échange de création")
                             .font(.system(size: 14, weight: .bold))
-                        Text("Le panneau de gauche montre le résultat 3D de cette demande. Fond studio, grille et chrome ont été retravaillés pour une lecture plus claire.")
+                        Text("Le panneau de gauche montre le résultat 3D de cette demande. Utilisez le bouton « Grille » pour afficher l’espace 3D et « Éléments 3D » pour y placer les pièces.")
                             .font(.system(size: 13))
                             .foregroundStyle(.white.opacity(0.78))
                             .fixedSize(horizontal: false, vertical: true)

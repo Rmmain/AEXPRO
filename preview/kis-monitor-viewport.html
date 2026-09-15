@@ -47,7 +47,7 @@
         radial-gradient(ellipse 70% 50% at 50% 42%, rgba(115,199,235,0.16), transparent 70%),
         linear-gradient(180deg, var(--studio-lift) 0%, var(--studio-mid) 42%, var(--studio-deep) 100%);
     }
-    .floor-grid {
+    .scene {
       position: absolute;
       inset: 0;
       width: 100%;
@@ -104,6 +104,14 @@
       background: rgba(255,255,255,0.08);
       display: grid; place-items: center;
       font-size: 13px;
+      cursor: pointer;
+      user-select: none;
+      transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+    }
+    .tool.active {
+      background: var(--signal);
+      color: #0b1016;
+      box-shadow: 0 0 0 1px rgba(89,209,199,0.9), 0 0 14px rgba(89,209,199,0.4);
     }
     .tool.danger { color: #f07a7a; }
     .empty {
@@ -118,6 +126,7 @@
       box-shadow: 0 8px 28px rgba(89,209,199,0.12);
       max-width: 360px;
     }
+    .empty.hidden { display: none; }
     .icon-wrap {
       width: 92px; height: 92px; margin: 0 auto 14px;
       border-radius: 50%;
@@ -161,7 +170,7 @@
     <header class="appbar">KIS AI Monitor</header>
     <div class="split">
       <section class="viewport" aria-label="Vue résultat 3D">
-        <svg class="floor-grid" viewBox="0 0 1000 800" preserveAspectRatio="none" aria-hidden="true">
+        <svg class="scene" viewBox="0 0 1000 800" preserveAspectRatio="none" aria-hidden="true">
           <defs>
             <linearGradient id="fade" x1="0" y1="0.4" x2="0" y2="1">
               <stop offset="0" stop-color="#59d1c7" stop-opacity="0"/>
@@ -169,43 +178,30 @@
               <stop offset="1" stop-color="#ffffff" stop-opacity="0.08"/>
             </linearGradient>
           </defs>
-          <polygon points="0,800 1000,800 720,360 280,360" fill="url(#fade)"/>
-          <line x1="500" y1="320" x2="0" y2="800" stroke="rgba(255,255,255,0.14)" stroke-width="1"/>
-          <line x1="500" y1="320" x2="125" y2="800" stroke="rgba(255,255,255,0.10)" stroke-width="1"/>
-          <line x1="500" y1="320" x2="250" y2="800" stroke="rgba(255,255,255,0.10)" stroke-width="1"/>
-          <line x1="500" y1="320" x2="375" y2="800" stroke="rgba(255,255,255,0.10)" stroke-width="1"/>
-          <line x1="500" y1="320" x2="500" y2="800" stroke="rgba(89,209,199,0.35)" stroke-width="1.4"/>
-          <line x1="500" y1="320" x2="625" y2="800" stroke="rgba(255,255,255,0.10)" stroke-width="1"/>
-          <line x1="500" y1="320" x2="750" y2="800" stroke="rgba(255,255,255,0.10)" stroke-width="1"/>
-          <line x1="500" y1="320" x2="875" y2="800" stroke="rgba(255,255,255,0.10)" stroke-width="1"/>
-          <line x1="500" y1="320" x2="1000" y2="800" stroke="rgba(255,255,255,0.14)" stroke-width="1"/>
-          <line x1="280" y1="360" x2="720" y2="360" stroke="rgba(89,209,199,0.35)" stroke-width="1.2"/>
-          <line x1="220" y1="430" x2="780" y2="430" stroke="rgba(255,255,255,0.12)" stroke-width="1"/>
-          <line x1="160" y1="520" x2="840" y2="520" stroke="rgba(255,255,255,0.12)" stroke-width="1"/>
-          <line x1="90" y1="630" x2="910" y2="630" stroke="rgba(255,255,255,0.12)" stroke-width="1"/>
-          <line x1="20" y1="740" x2="980" y2="740" stroke="rgba(255,255,255,0.10)" stroke-width="1"/>
+          <g id="grid"></g>
+          <g id="elements"></g>
         </svg>
         <div class="glow"></div>
         <div class="chrome-top">
           <div class="glass badge">
             <div class="row"><span class="dot"></span> KIS 3D ENGINE · Base Easy</div>
-            <div class="count">Aucune pièce</div>
+            <div class="count" id="count">Aucune pièce</div>
           </div>
           <div class="glass toolbar">
             <div class="tool" title="Caméra">◎</div>
-            <div class="tool" title="Vue modèle">◻</div>
-            <div class="tool" title="Grille">▦</div>
-            <div class="tool danger" title="Effacer">⌫</div>
+            <div class="tool" id="btn-elements" title="Éléments 3D">◻</div>
+            <div class="tool active" id="btn-grid" title="Grille">▦</div>
+            <div class="tool danger" id="btn-clear" title="Effacer">⌫</div>
           </div>
         </div>
-        <div class="empty glass">
+        <div class="empty glass" id="empty">
           <div class="icon-wrap">◇</div>
           <h1>Résultat de la demande</h1>
-          <p>Le modèle 3D apparaîtra ici dès qu’une pièce sera générée à partir de votre prompt.</p>
+          <p>Touchez « Éléments 3D » dans la barre d’outils pour afficher des pièces dans l’espace 3D.</p>
         </div>
         <div class="chrome-bottom">
           <div class="glass gizmo"><span class="x">● X</span><span class="y">● Y</span><span class="z">● Z</span></div>
-          <div class="glass hint">Vue résultat · pincer pour zoomer · glisser pour orbiter</div>
+          <div class="glass hint">Grille &amp; Éléments 3D dans la barre d’outils · pincer pour zoomer</div>
         </div>
       </section>
       <aside class="side">
@@ -213,10 +209,133 @@
         <div class="name"><span class="orange"></span> Esiakis (KIS Native)</div>
         <div class="card">
           <h2>ESIAKIS · échange de création</h2>
-          <p>Le panneau de gauche montre le résultat 3D de cette demande. Fond studio, grille et chrome ont été retravaillés pour une lecture plus claire.</p>
+          <p>Le panneau de gauche montre le résultat 3D de cette demande. Utilisez le bouton « Grille » pour afficher l’espace 3D et « Éléments 3D » pour y placer les pièces.</p>
         </div>
       </aside>
     </div>
   </div>
+
+  <script>
+    // Mirror of ResultViewportView.SceneFloor — kept in sync so the preview
+    // reflects the SwiftUI viewport without needing Xcode.
+    const SVGNS = "http://www.w3.org/2000/svg";
+    const W = 1000, H = 800;
+    const floorTop = 0.46 * H + 8; // 376
+
+    function project(u, depth) {
+      const spread = 0.22 + depth * 0.28;
+      const x = W * (0.5 + u * spread);
+      const y = floorTop + Math.pow(depth, 1.35) * (H - floorTop);
+      return { x, y };
+    }
+
+    const elementsData = [
+      { u: -0.45, depth: 0.72, size: 0.10,  height: 1.0,  color: "#59d1c7" },
+      { u:  0.12, depth: 0.55, size: 0.085, height: 1.35, color: "#73c7eb" },
+      { u:  0.50, depth: 0.82, size: 0.11,  height: 0.8,  color: "#619eea" },
+      { u: -0.08, depth: 0.32, size: 0.06,  height: 1.1,  color: "#6bdb85" },
+      { u:  0.34, depth: 0.42, size: 0.07,  height: 0.95, color: "#f26161" }
+    ];
+
+    let showGrid = true;
+    let showElements = false;
+
+    function line(x1, y1, x2, y2, stroke, width) {
+      const el = document.createElementNS(SVGNS, "line");
+      el.setAttribute("x1", x1); el.setAttribute("y1", y1);
+      el.setAttribute("x2", x2); el.setAttribute("y2", y2);
+      el.setAttribute("stroke", stroke); el.setAttribute("stroke-width", width);
+      return el;
+    }
+    function poly(points, fill, opacity, stroke, sw) {
+      const el = document.createElementNS(SVGNS, "polygon");
+      el.setAttribute("points", points.map(p => p[0] + "," + p[1]).join(" "));
+      el.setAttribute("fill", fill);
+      if (opacity != null) el.setAttribute("fill-opacity", opacity);
+      if (stroke) { el.setAttribute("stroke", stroke); el.setAttribute("stroke-width", sw || 1); }
+      return el;
+    }
+
+    function renderGrid() {
+      const g = document.getElementById("grid");
+      g.innerHTML = "";
+      if (!showGrid) return;
+      const vanish = { x: W * 0.5, y: 0.46 * H };
+      // floor fill
+      const floor = document.createElementNS(SVGNS, "polygon");
+      floor.setAttribute("points", `0,${H} ${W},${H} ${W*0.72},${floorTop} ${W*0.28},${floorTop}`);
+      floor.setAttribute("fill", "url(#fade)");
+      g.appendChild(floor);
+      // converging vertical lines
+      const cols = 16;
+      for (let i = 0; i <= cols; i++) {
+        const xBottom = W * (i / cols);
+        const accent = i === cols / 2;
+        g.appendChild(line(xBottom, H, vanish.x, vanish.y,
+          accent ? "rgba(89,209,199,0.35)" : "rgba(255,255,255,0.14)", accent ? 1.6 : 0.9));
+      }
+      // depth lines
+      const rows = 10;
+      for (let j = 0; j <= rows; j++) {
+        const depth = j / rows;
+        const y = floorTop + Math.pow(depth, 1.35) * (H - floorTop);
+        const spread = 0.22 + depth * 0.28;
+        g.appendChild(line(W * (0.5 - spread), y, W * (0.5 + spread), y,
+          j === 0 ? "rgba(89,209,199,0.35)" : "rgba(255,255,255,0.12)", j === 0 ? 1.4 : 0.7));
+      }
+    }
+
+    function renderElements() {
+      const g = document.getElementById("elements");
+      g.innerHTML = "";
+      if (!showElements) return;
+      const sorted = [...elementsData].sort((a, b) => a.depth - b.depth);
+      for (const el of sorted) {
+        const base = project(el.u, el.depth);
+        const left = project(el.u - el.size, el.depth);
+        const right = project(el.u + el.size, el.depth);
+        const w = Math.max(10, right.x - left.x);
+        const hgt = w * (0.9 * el.height + 0.3);
+        const cx = base.x, by = base.y;
+        const dx = w * 0.28, dy = -w * 0.20;
+
+        const flb = [cx - w / 2, by], frb = [cx + w / 2, by];
+        const flt = [cx - w / 2, by - hgt], frt = [cx + w / 2, by - hgt];
+        const blt = [flt[0] + dx, flt[1] + dy];
+        const brt = [frt[0] + dx, frt[1] + dy];
+        const brb = [frb[0] + dx, frb[1] + dy];
+
+        // floor shadow
+        const shadow = document.createElementNS(SVGNS, "ellipse");
+        shadow.setAttribute("cx", cx); shadow.setAttribute("cy", by);
+        shadow.setAttribute("rx", w * 0.62); shadow.setAttribute("ry", w * 0.12);
+        shadow.setAttribute("fill", "#000"); shadow.setAttribute("fill-opacity", "0.30");
+        g.appendChild(shadow);
+
+        g.appendChild(poly([frb, frt, brt, brb], el.color, 0.55));           // right
+        g.appendChild(poly([flt, frt, brt, blt], el.color, 0.95));           // top
+        g.appendChild(poly([flb, frb, frt, flt], el.color, 0.75,
+          "rgba(255,255,255,0.40)", 1));                                     // front + edge
+      }
+    }
+
+    function render() {
+      renderGrid();
+      renderElements();
+      document.getElementById("btn-grid").classList.toggle("active", showGrid);
+      document.getElementById("btn-elements").classList.toggle("active", showElements);
+      document.getElementById("empty").classList.toggle("hidden", showElements);
+      const count = showElements ? elementsData.length : 0;
+      document.getElementById("count").textContent = count === 0 ? "Aucune pièce" : count + " pièce(s)";
+    }
+
+    document.getElementById("btn-grid").addEventListener("click", () => { showGrid = !showGrid; render(); });
+    document.getElementById("btn-elements").addEventListener("click", () => { showElements = !showElements; render(); });
+    document.getElementById("btn-clear").addEventListener("click", () => { showElements = false; render(); });
+
+    // Default preview state: grid on + elements shown so the 3D space is visible.
+    showElements = true;
+    render();
+  </script>
 </body>
 </html>
